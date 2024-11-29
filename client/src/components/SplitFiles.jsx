@@ -20,6 +20,8 @@ const SplitFiles = () => {
     const formData = new FormData();
     formData.append("pdfFile", file);
 
+    console.log(formData)
+
     try {
       const response = await axios.post(
         "http://localhost:5000/split-pdfs",

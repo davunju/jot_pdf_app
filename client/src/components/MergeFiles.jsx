@@ -2,34 +2,33 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const MergeFiles = () => {
-  const [files, setFiles] = useState(null);
+  const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle file input changes
   const handleFileChange = (e) => {
-    setFiles(e.target.files);
+    setFiles(Array.from(e.target.files)); // Convert FileList to an array
   };
 
+  // Merge files on button click
   const handleMerge = async () => {
-    if (!files || files.length < 2) {
-      alert("Please select at least two pdf files.");
+    if (files.length < 2) {
+      alert("Please select at least two PDF files.");
       return;
     }
 
     setIsLoading(true);
 
     const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append("files", file));
+    files.forEach((file) => formData.append("files", file));
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/merge-pdfs",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          responseType: "blob",
-        }
-      );
+      const response = await axios.post("http://localhost:5000/merge-pdfs", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        responseType: "blob", // Expect a binary response
+      });
 
+      // Create a link to download the merged PDF
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -38,12 +37,8 @@ const MergeFiles = () => {
       link.click();
       link.remove();
     } catch (error) {
-      console.error("Error merging pdfs:", error);
-      console.error(
-        "Axios Error:",
-        error.response ? error.response.data : error.message
-      );
-      alert("Failed to merge pdfs");
+      console.error("Error merging PDFs:", error);
+      alert("Failed to merge PDFs.");
     } finally {
       setIsLoading(false);
     }
@@ -53,11 +48,10 @@ const MergeFiles = () => {
     <section className="flex min-h-full items-center justify-center text-slate-700 dark:text-slate-100 dark:bg-slate-800">
       <section className="my-10 text-center w-full p-5 max-w-3xl mx-auto">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-6 mb-4">
-          Merge PDF files
+          Merge PDF Files
         </h1>
         <p className="text-lg md:text-xl mb-4">
-          Combine PDFs in the order you want with the easiest PDF merger
-          available
+          Combine PDFs in the order you want with the easiest PDF merger available.
         </p>
         <section className="cursor-pointer mb-4 border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-lg p-8 text-lg">
           <svg
@@ -88,16 +82,22 @@ const MergeFiles = () => {
               Upload PDF files
             </span>
           </label>
-          <p>or drag and drop pdf files here</p>
+          <p>or drag and drop PDF files here</p>
         </section>
-        {/* <ul>
+        {files.length > 0 && <div className="my-5">
+          <h1 className="text-lg font-medium mb-3">Uploaded Files</h1>
+        <ul className="flex flex-cols md:flex-rows items-center justify-center flex-wrap gap-3">
           {files.map((file, index) => (
-            <li key={index}>{file.name}</li>
+            <li key={index} className="border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-lg p-2">{file.name}</li>
           ))}
-        </ul> */}
+        </ul>
+        </div>}
+        
+        
         <button
           onClick={handleMerge}
           className="text-2xl bg-gradient-to-r from-red-500 to-slate-600 text-white font-medium py-4 rounded-lg w-1/2"
+          disabled={isLoading}
         >
           {isLoading ? "Merging..." : "Merge PDFs"}
         </button>
